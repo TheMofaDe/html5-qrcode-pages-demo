@@ -777,9 +777,9 @@
             <section class="field-group">
               <h3>Actions</h3>
               <div class="button-row">
-                <button class="primary" type="submit" id="apply-config">Apply</button>
                 <button class="secondary" type="button" id="reset-config">Reset</button>
               </div>
+              <div class="help-copy">Changes apply automatically.</div>
             </section>
           </form>
         </aside>
@@ -873,13 +873,14 @@
         restartScanner: document.getElementById("restart-scanner"),
         clearResults: document.getElementById("clear-results"),
         resetConfig: document.getElementById("reset-config"),
-        applyConfig: document.getElementById("apply-config"),
         formats: document.getElementById("formats"),
       };
 
       let scanner = null;
       let history = [];
       let lastDecoded = "";
+      let applyTimer = null;
+      let applyQueue = Promise.resolve();
 
       function populateFormats() {
         formatLabels.forEach((name) => {
@@ -1096,7 +1097,6 @@
 
       async function renderScanner(config) {
         setStatus("idle", "Loading", "Creating a fresh scanner instance.");
-        dom.applyConfig.disabled = true;
         dom.restartScanner.disabled = true;
 
         await destroyScanner();
@@ -1116,7 +1116,6 @@
         );
 
         setStatus("live", "Live", "Scanner ready. Grant camera access or switch to file mode in the scanner UI.");
-        dom.applyConfig.disabled = false;
         dom.restartScanner.disabled = false;
       }
 
@@ -1125,6 +1124,23 @@
         saveConfig(config);
         updateConfigPreview(config);
         await renderScanner(config);
+      }
+
+      function scheduleConfigApply(delay = 220) {
+        const config = readConfigFromForm();
+        saveConfig(config);
+        updateConfigPreview(config);
+
+        if (applyTimer) {
+          clearTimeout(applyTimer);
+        }
+
+        applyTimer = window.setTimeout(() => {
+          applyQueue = applyQueue.then(() => renderScanner(config)).catch((error) => {
+            console.error(error);
+            setStatus("error", "Failed", "Scanner update failed. Check the console for details.");
+          });
+        }, delay);
       }
 
       function clearResults() {
@@ -1139,7 +1155,7 @@
       function wireEvents() {
         dom.form.addEventListener("submit", async (event) => {
           event.preventDefault();
-          await applyCurrentConfig();
+          scheduleConfigApply(0);
         });
 
         dom.resetConfig.addEventListener("click", async () => {
@@ -1154,7 +1170,11 @@
         dom.clearResults.addEventListener("click", clearResults);
 
         dom.form.addEventListener("input", () => {
-          updateConfigPreview(readConfigFromForm());
+          scheduleConfigApply();
+        });
+
+        dom.form.addEventListener("change", () => {
+          scheduleConfigApply(0);
         });
       }
 
