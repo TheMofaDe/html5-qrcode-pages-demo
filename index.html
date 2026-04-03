@@ -88,10 +88,7 @@
       }
 
       .hero {
-        display: grid;
-        grid-template-columns: 1.3fr 0.9fr;
-        gap: 1.25rem;
-        align-items: stretch;
+        display: block;
       }
 
       .hero-card,
@@ -137,29 +134,6 @@
         background: rgba(255, 255, 255, 0.04);
         color: var(--muted);
         font-size: 0.9rem;
-      }
-
-      .hero-side {
-        display: grid;
-        gap: 1rem;
-      }
-
-      .metric {
-        border-radius: var(--radius-xl);
-        padding: 1.35rem 1.5rem;
-        background:
-          linear-gradient(135deg, rgba(102, 226, 200, 0.18), rgba(7, 19, 31, 0.88) 62%),
-          var(--panel-strong);
-      }
-
-      .metric strong {
-        display: block;
-        font-size: 2rem;
-        letter-spacing: -0.05em;
-      }
-
-      .metric span {
-        color: var(--muted);
       }
 
       .workspace {
@@ -577,7 +551,6 @@
       }
 
       @media (max-width: 980px) {
-        .hero,
         .workspace,
         .result-main,
         .footer-grid {
@@ -640,18 +613,6 @@
             <span class="badge">Saved locally</span>
           </div>
         </article>
-        <aside class="hero-side">
-          <section class="metric">
-            <span>Scan state</span>
-            <strong id="hero-status">Ready</strong>
-            <span id="hero-detail">Adjust settings and start scanning.</span>
-          </section>
-          <section class="metric">
-            <span>Active formats</span>
-            <strong id="hero-formats">All</strong>
-            <span>Limit formats for a tighter scan target.</span>
-          </section>
-        </aside>
       </section>
 
       <section class="workspace">
@@ -856,9 +817,6 @@
         statusDetail: document.getElementById("status-detail"),
         latestText: document.getElementById("latest-text"),
         historyList: document.getElementById("history-list"),
-        heroStatus: document.getElementById("hero-status"),
-        heroDetail: document.getElementById("hero-detail"),
-        heroFormats: document.getElementById("hero-formats"),
         restartScanner: document.getElementById("restart-scanner"),
         clearResults: document.getElementById("clear-results"),
         resetConfig: document.getElementById("reset-config"),
@@ -994,8 +952,7 @@
       }
 
       function updateConfigPreview(config) {
-        dom.heroFormats.textContent =
-          config.formats.length === formatLabels.length ? "All" : config.formats.length.toString();
+        void config;
       }
 
       function setStatus(kind, label, detail) {
@@ -1008,8 +965,6 @@
           dom.statusPill.classList.add("status-error");
         }
         dom.statusDetail.textContent = detail;
-        dom.heroStatus.textContent = label;
-        dom.heroDetail.textContent = detail;
       }
 
       function renderHistory() {
