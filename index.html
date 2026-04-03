@@ -138,7 +138,7 @@
 
       .workspace {
         display: grid;
-        grid-template-columns: minmax(310px, 360px) minmax(0, 1fr);
+        grid-template-columns: minmax(360px, 430px) minmax(0, 1fr);
         gap: 1.25rem;
         margin-top: 1.25rem;
       }
@@ -203,6 +203,10 @@
         gap: 0.45rem;
       }
 
+      .field-row label {
+        display: block;
+      }
+
       .split {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -246,6 +250,8 @@
       .toggle-copy {
         display: grid;
         gap: 0.18rem;
+        min-width: 0;
+        flex: 1;
       }
 
       .toggle {
@@ -332,6 +338,49 @@
         display: flex;
         flex-wrap: wrap;
         gap: 0.75rem;
+      }
+
+      .checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem;
+      }
+
+      .checkbox-card {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        min-width: 0;
+        padding: 0.78rem 0.9rem;
+        border-radius: 14px;
+        background: rgba(4, 11, 19, 0.52);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        cursor: pointer;
+        transition:
+          border-color 140ms ease,
+          background 140ms ease,
+          transform 140ms ease;
+      }
+
+      .checkbox-card:hover {
+        transform: translateY(-1px);
+        border-color: rgba(102, 226, 200, 0.22);
+      }
+
+      .checkbox-card input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: var(--accent);
+        flex: 0 0 auto;
+      }
+
+      .checkbox-card span {
+        min-width: 0;
+        color: var(--text);
+        font-size: 0.9rem;
+        line-height: 1.2;
+        word-break: break-word;
       }
 
       button {
@@ -577,6 +626,10 @@
           grid-template-columns: 1fr;
         }
 
+        .checkbox-grid {
+          grid-template-columns: 1fr;
+        }
+
         .button-row {
           flex-direction: column;
         }
@@ -716,8 +769,8 @@
               <h3>Formats</h3>
               <div class="field-row">
                 <label for="formats">Formats to scan</label>
-                <select id="formats" name="formats" multiple size="8"></select>
-                <div class="help-copy">Use Command/Ctrl-click to refine the list.</div>
+                <div id="formats" class="checkbox-grid" aria-label="Formats to scan"></div>
+                <div class="help-copy">Turn individual formats on or off.</div>
               </div>
             </section>
 
@@ -830,10 +883,20 @@
 
       function populateFormats() {
         formatLabels.forEach((name) => {
-          const option = document.createElement("option");
-          option.value = name;
-          option.textContent = name.replaceAll("_", " ");
-          dom.formats.appendChild(option);
+          const label = document.createElement("label");
+          label.className = "checkbox-card";
+
+          const input = document.createElement("input");
+          input.type = "checkbox";
+          input.name = "formats";
+          input.value = name;
+
+          const text = document.createElement("span");
+          text.textContent = name.replaceAll("_", " ");
+
+          label.appendChild(input);
+          label.appendChild(text);
+          dom.formats.appendChild(label);
         });
       }
 
@@ -867,13 +930,16 @@
         dom.form.elements.showTorchButtonIfSupported.checked = Boolean(config.showTorchButtonIfSupported);
         dom.form.elements.verbose.checked = Boolean(config.verbose);
 
-        for (const option of dom.formats.options) {
-          option.selected = config.formats.includes(option.value);
-        }
+        const checkboxes = dom.formats.querySelectorAll('input[name="formats"]');
+        checkboxes.forEach((checkbox) => {
+          checkbox.checked = config.formats.includes(checkbox.value);
+        });
       }
 
       function getSelectedFormats() {
-        return Array.from(dom.formats.selectedOptions).map((option) => option.value);
+        return Array.from(dom.formats.querySelectorAll('input[name="formats"]:checked')).map(
+          (checkbox) => checkbox.value
+        );
       }
 
       function normalizeFormats(formats) {
