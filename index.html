@@ -243,14 +243,12 @@
 
       input,
       select,
-      button,
-      textarea {
+      button {
         font: inherit;
       }
 
       input[type="number"],
-      select,
-      textarea {
+      select {
         width: 100%;
         min-height: 2.8rem;
         border-radius: var(--radius-md);
@@ -260,22 +258,37 @@
         padding: 0.72rem 0.9rem;
       }
 
-      textarea {
-        min-height: 6rem;
-        resize: vertical;
-      }
-
       .toggle-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 1rem;
+        padding: 0.9rem 1rem;
+        border-radius: 16px;
+        background: rgba(4, 11, 19, 0.52);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .toggle-copy {
+        display: grid;
+        gap: 0.18rem;
       }
 
       .toggle {
         position: relative;
-        width: 50px;
-        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        width: 68px;
+        height: 38px;
+        padding: 4px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+        transition:
+          background 180ms ease,
+          border-color 180ms ease,
+          box-shadow 180ms ease;
       }
 
       .toggle input {
@@ -286,31 +299,59 @@
       }
 
       .toggle-ui {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+      }
+
+      .toggle-ui::before {
+        content: "";
         position: absolute;
-        inset: 0;
-        background: rgba(255, 255, 255, 0.12);
-        border-radius: 999px;
-        transition: 180ms ease;
+        top: 0;
+        left: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, #ffffff, #d8e5f5);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+        transition: transform 180ms ease;
       }
 
       .toggle-ui::after {
-        content: "";
+        content: "OFF";
         position: absolute;
-        top: 3px;
-        left: 3px;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: white;
-        transition: 180ms ease;
+        top: 50%;
+        right: 8px;
+        transform: translateY(-50%);
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+        color: rgba(237, 244, 255, 0.65);
+        transition:
+          color 180ms ease,
+          left 180ms ease,
+          right 180ms ease;
       }
 
-      .toggle input:checked + .toggle-ui {
-        background: linear-gradient(135deg, var(--accent), #2b8aa7);
+      .toggle:focus-within {
+        box-shadow: 0 0 0 3px rgba(102, 226, 200, 0.16);
+      }
+
+      .toggle input:checked + .toggle-ui::before {
+        transform: translateX(30px);
       }
 
       .toggle input:checked + .toggle-ui::after {
-        transform: translateX(20px);
+        content: "ON";
+        left: 11px;
+        right: auto;
+        color: #05202a;
+      }
+
+      .toggle:has(input:checked) {
+        background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+        border-color: transparent;
       }
 
       .button-row {
@@ -589,28 +630,26 @@
         <article class="hero-card">
           <h1>Barcode Playground</h1>
           <p>
-            A GitHub Pages-ready demo for
-            <a href="https://github.com/mebjas/html5-qrcode" target="_blank" rel="noreferrer">html5-qrcode</a>.
-            Tune scanner behavior live, swap between camera and file scanning, and inspect decoded payloads
-            without touching a build step.
+            A clean browser demo for
+            <a href="https://github.com/mebjas/html5-qrcode" target="_blank" rel="noreferrer">html5-qrcode</a>
+            with live controls and instant scanning.
           </p>
           <div class="hero-badges">
-            <span class="badge">Static hosting only</span>
-            <span class="badge">Runtime config controls</span>
-            <span class="badge">Camera + file scanning</span>
-            <span class="badge">Result history</span>
+            <span class="badge">Camera + file</span>
+            <span class="badge">Live settings</span>
+            <span class="badge">Saved locally</span>
           </div>
         </article>
         <aside class="hero-side">
           <section class="metric">
             <span>Scan state</span>
             <strong id="hero-status">Ready</strong>
-            <span id="hero-detail">Apply a config and start scanning.</span>
+            <span id="hero-detail">Adjust settings and start scanning.</span>
           </section>
           <section class="metric">
             <span>Active formats</span>
             <strong id="hero-formats">All</strong>
-            <span>Restrict formats when you want faster, narrower detection.</span>
+            <span>Limit formats for a tighter scan target.</span>
           </section>
         </aside>
       </section>
@@ -619,23 +658,25 @@
         <aside class="panel">
           <div class="panel-header">
             <div>
-              <h2>Runtime Configuration</h2>
-              <p>Update the settings, then rebuild the scanner with one click.</p>
+              <h2>Scanner Settings</h2>
+              <p>Change settings and apply them live.</p>
             </div>
           </div>
 
           <form id="config-form" class="form-grid">
             <section class="field-group">
-              <h3>Scan Behavior</h3>
+              <h3>Behavior</h3>
               <div class="split">
                 <div class="field-row">
-                  <label for="fps">Frames per second</label>
+                  <label for="fps">FPS</label>
                   <input id="fps" name="fps" type="number" min="1" max="30" step="1" value="10" />
                 </div>
                 <div class="field-row">
-                  <label for="remember-last">Remember last camera</label>
+                  <label for="remember-last">Remember camera</label>
                   <div class="toggle-row">
-                    <span class="subtle">Preselect the last used camera when possible.</span>
+                    <span class="toggle-copy">
+                      <span class="subtle">Reuse the last camera.</span>
+                    </span>
                     <label class="toggle">
                       <input id="remember-last" name="rememberLastUsedCamera" type="checkbox" checked />
                       <span class="toggle-ui"></span>
@@ -646,11 +687,11 @@
 
               <div class="split">
                 <div class="field-row">
-                  <label for="qrbox-width">Scan box width</label>
+                  <label for="qrbox-width">Box width</label>
                   <input id="qrbox-width" name="qrboxWidth" type="number" min="80" max="800" step="10" value="260" />
                 </div>
                 <div class="field-row">
-                  <label for="qrbox-height">Scan box height</label>
+                  <label for="qrbox-height">Box height</label>
                   <input id="qrbox-height" name="qrboxHeight" type="number" min="80" max="800" step="10" value="260" />
                 </div>
               </div>
@@ -666,7 +707,7 @@
                   </select>
                 </div>
                 <div class="field-row">
-                  <label for="scan-type">Preferred scan mode</label>
+                  <label for="scan-type">Scan order</label>
                   <select id="scan-type" name="scanTypeOrder">
                     <option value="camera,file">Camera first</option>
                     <option value="file,camera">File first</option>
@@ -677,9 +718,9 @@
               </div>
 
               <div class="toggle-row">
-                <span>
+                <span class="toggle-copy">
                   <label for="disable-flip">Disable mirrored image correction</label>
-                  <div class="help-copy">Useful when you know your camera feed does not need flip handling.</div>
+                  <span class="help-copy">Skip mirrored-image handling.</span>
                 </span>
                 <label class="toggle">
                   <input id="disable-flip" name="disableFlip" type="checkbox" />
@@ -688,9 +729,9 @@
               </div>
 
               <div class="toggle-row">
-                <span>
+                <span class="toggle-copy">
                   <label for="show-torch">Show torch button if supported</label>
-                  <div class="help-copy">Only appears when the browser and device expose torch control.</div>
+                  <span class="help-copy">Only appears on supported devices.</span>
                 </span>
                 <label class="toggle">
                   <input id="show-torch" name="showTorchButtonIfSupported" type="checkbox" checked />
@@ -699,9 +740,9 @@
               </div>
 
               <div class="toggle-row">
-                <span>
+                <span class="toggle-copy">
                   <label for="verbose">Verbose library logs</label>
-                  <div class="help-copy">Helpful if you are inspecting the library behavior in DevTools.</div>
+                  <span class="help-copy">Useful while debugging.</span>
                 </span>
                 <label class="toggle">
                   <input id="verbose" name="verbose" type="checkbox" />
@@ -711,22 +752,20 @@
             </section>
 
             <section class="field-group">
-              <h3>Formats to Support</h3>
+              <h3>Formats</h3>
               <div class="field-row">
-                <label for="formats">Limit recognition to specific code formats</label>
+                <label for="formats">Formats to scan</label>
                 <select id="formats" name="formats" multiple size="8"></select>
-                <div class="help-copy">Leave all selected to scan broadly. Use Command/Ctrl-click to adjust.</div>
+                <div class="help-copy">Use Command/Ctrl-click to refine the list.</div>
               </div>
             </section>
 
             <section class="field-group">
               <h3>Actions</h3>
               <div class="button-row">
-                <button class="primary" type="submit" id="apply-config">Apply Config</button>
-                <button class="secondary" type="button" id="reset-config">Reset Defaults</button>
-                <button class="ghost" type="button" id="copy-config">Copy JSON</button>
+                <button class="primary" type="submit" id="apply-config">Apply</button>
+                <button class="secondary" type="button" id="reset-config">Reset</button>
               </div>
-              <textarea id="config-preview" readonly aria-label="Current config preview"></textarea>
             </section>
           </form>
         </aside>
@@ -747,8 +786,8 @@
           <article class="result-card">
             <div class="result-header">
               <div>
-                <h2>Decoded Output</h2>
-                <p>New detections appear here first, then roll into history.</p>
+                <h2>Results</h2>
+                <p>Latest result and recent history.</p>
               </div>
             </div>
             <div class="result-main">
@@ -768,20 +807,7 @@
       </section>
 
       <section class="footer-card">
-        <div class="footer-grid">
-          <div>
-            <strong>Pages deployment</strong>
-            <span class="subtle">This demo is a single static HTML document. Publishing it from the repo root works on GitHub Pages without a build pipeline.</span>
-          </div>
-          <div>
-            <strong>Runtime changes</strong>
-            <span class="subtle">Every config change tears down the current scanner and renders a fresh one, which matches the library’s supported configuration flow.</span>
-          </div>
-          <div>
-            <strong>Privacy</strong>
-            <span class="subtle">All decoding happens in the browser. Nothing from camera or file scans is uploaded by this page.</span>
-          </div>
-        </div>
+        <span class="subtle">Runs entirely in the browser. Nothing is uploaded.</span>
       </section>
     </main>
 
@@ -826,7 +852,6 @@
 
       const dom = {
         form: document.getElementById("config-form"),
-        preview: document.getElementById("config-preview"),
         statusPill: document.getElementById("status-pill"),
         statusDetail: document.getElementById("status-detail"),
         latestText: document.getElementById("latest-text"),
@@ -837,7 +862,6 @@
         restartScanner: document.getElementById("restart-scanner"),
         clearResults: document.getElementById("clear-results"),
         resetConfig: document.getElementById("reset-config"),
-        copyConfig: document.getElementById("copy-config"),
         applyConfig: document.getElementById("apply-config"),
         formats: document.getElementById("formats"),
       };
@@ -970,8 +994,6 @@
       }
 
       function updateConfigPreview(config) {
-        const preview = buildScannerConfig(config);
-        dom.preview.value = JSON.stringify(preview, null, 2);
         dom.heroFormats.textContent =
           config.formats.length === formatLabels.length ? "All" : config.formats.length.toString();
       }
@@ -1084,16 +1106,6 @@
         await renderScanner(config);
       }
 
-      async function copyConfig() {
-        try {
-          await navigator.clipboard.writeText(dom.preview.value);
-          setStatus("live", "Copied", "Current config JSON copied to the clipboard.");
-        } catch (error) {
-          setStatus("error", "Clipboard blocked", "Your browser denied clipboard access.");
-          console.error(error);
-        }
-      }
-
       function clearResults() {
         history = [];
         lastDecoded = "";
@@ -1117,7 +1129,6 @@
           await renderScanner(config);
         });
 
-        dom.copyConfig.addEventListener("click", copyConfig);
         dom.restartScanner.addEventListener("click", applyCurrentConfig);
         dom.clearResults.addEventListener("click", clearResults);
 
